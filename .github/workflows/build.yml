@@ -12,11 +12,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Fast Install XcodeGen
-        run: |
-          curl -sL https://github.com/yonaskolb/XcodeGen/releases/download/2.42.0/xcodegen.zip -o xcodegen.zip
-          unzip -q xcodegen.zip
-          sudo cp xcodegen/bin/xcodegen /usr/local/bin/
+      - name: Install XcodeGen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
+          HOMEBREW_NO_INSTALL_CLEANUP: 1
+        run: brew install xcodegen
 
       - name: Generate Xcode Project
         run: xcodegen generate
