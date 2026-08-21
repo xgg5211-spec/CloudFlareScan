@@ -12,8 +12,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Fast Install XcodeGen (Download binary)
+        run: |
+          curl -sL https://github.com/yonaskolb/XcodeGen/releases/download/2.42.0/xcodegen.zip -o xcodegen.zip
+          unzip -q xcodegen.zip
+          sudo cp xcodegen/bin/xcodegen /usr/local/bin/
 
       - name: Generate Xcode Project
         run: xcodegen generate
@@ -27,7 +30,8 @@ jobs:
             -sdk iphoneos \
             -derivedDataPath build/DerivedData \
             CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
 
           APP_PATH=$(find build/DerivedData -name "CloudFlareScan.app" -type d | head -n 1)
           mkdir -p Payload
