@@ -13,10 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install XcodeGen
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: 1
-          HOMEBREW_NO_INSTALL_CLEANUP: 1
-        run: brew install xcodegen
+        run: brew install xcodegen || true
 
       - name: Generate Xcode Project
         run: xcodegen generate
@@ -29,8 +26,6 @@ jobs:
             -configuration Release \
             -sdk iphoneos \
             -derivedDataPath build/DerivedData \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
 
           APP_PATH=$(find build/DerivedData -name "CloudFlareScan.app" -type d | head -n 1)
