@@ -1,0 +1,12 @@
+name: CloudFlareScan
+options:
+  bundleIdPrefix: com.cloudflare
+targets:
+  CloudFlareScan:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources: [Sources]
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.cloudflare.scan
+      INFOPLIST_KEY_UILaunchScreen_Generation: true
