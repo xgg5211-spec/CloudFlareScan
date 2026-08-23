@@ -85,9 +85,8 @@ jobs:
           @property (nonatomic, strong) UIButton *scanBtn;
           @property (nonatomic, strong) UIButton *stopBtn;
           @property (nonatomic, strong) UIButton *importBtn;
-          @property (nonatomic, strong) UIButton *copyBtn;
+          @property (nonatomic, strong) UIButton *copyIPBtn;
           @property (nonatomic, strong) UIButton *clearBtn;
-          @property (nonatomic, strong) UIButton *exportBtn;
           @property (nonatomic, strong) UITextField *portField;
           @property (nonatomic, strong) UITextField *timeoutField;
           @property (nonatomic, strong) UITextField *threadField;
@@ -95,7 +94,6 @@ jobs:
           @property (nonatomic, strong) UITextField *filterPortField;
           @property (nonatomic, assign) BOOL isScanning;
           @property (nonatomic, strong) UIActivityIndicatorView *activityIndicator;
-          @property (nonatomic, strong) UIView *headerView;
           @property (nonatomic, strong) UISegmentedControl *tabControl;
           @property (nonatomic, strong) UITextView *logView;
           @end
@@ -116,7 +114,7 @@ jobs:
           }
 
           // ============================================================
-          // 5. UI布局（全新设计）
+          // 5. UI布局
           // ============================================================
           - (void)setupUI {
               UIScrollView *scroll = [[UIScrollView alloc] init];
@@ -333,14 +331,14 @@ jobs:
               [self.importBtn addTarget:self action:@selector(importIPs) forControlEvents:UIControlEventTouchUpInside];
               [btnBg addSubview:self.importBtn];
 
-              self.copyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-              [self.copyBtn setTitle:@"📋 复制" forState:UIControlStateNormal];
-              [self.copyBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-              self.copyBtn.backgroundColor = [UIColor colorWithRed:0.5 green:0.3 blue:0.8 alpha:1];
-              self.copyBtn.layer.cornerRadius = 6;
-              self.copyBtn.frame = CGRectMake(214, 5, 60, 34);
-              [self.copyBtn addTarget:self action:@selector(copyResults) forControlEvents:UIControlEventTouchUpInside];
-              [btnBg addSubview:self.copyBtn];
+              self.copyIPBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+              [self.copyIPBtn setTitle:@"📋 复制" forState:UIControlStateNormal];
+              [self.copyIPBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+              self.copyIPBtn.backgroundColor = [UIColor colorWithRed:0.5 green:0.3 blue:0.8 alpha:1];
+              self.copyIPBtn.layer.cornerRadius = 6;
+              self.copyIPBtn.frame = CGRectMake(214, 5, 60, 34);
+              [self.copyIPBtn addTarget:self action:@selector(copyResults) forControlEvents:UIControlEventTouchUpInside];
+              [btnBg addSubview:self.copyIPBtn];
 
               self.clearBtn = [UIButton buttonWithType:UIButtonTypeSystem];
               [self.clearBtn setTitle:@"🗑 清空" forState:UIControlStateNormal];
