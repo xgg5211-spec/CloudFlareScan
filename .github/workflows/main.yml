@@ -45,7 +45,7 @@ jobs:
           @property (nonatomic, strong) UIButton *scanBtn;
           @property (nonatomic, strong) UIButton *stopBtn;
           @property (nonatomic, strong) UIButton *importBtn;
-          @property (nonatomic, strong) UIButton *copyBtn;
+          @property (nonatomic, strong) UIButton *copyResultBtn;
           @property (nonatomic, strong) UITextField *portField;
           @property (nonatomic, strong) UITextField *timeoutField;
           @property (nonatomic, assign) BOOL isScanning;
@@ -220,14 +220,14 @@ jobs:
               [self.importBtn addTarget:self action:@selector(onImport) forControlEvents:UIControlEventTouchUpInside];
               [btnBg addSubview:self.importBtn];
 
-              self.copyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-              [self.copyBtn setTitle:@"📋 复制" forState:UIControlStateNormal];
-              [self.copyBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-              self.copyBtn.backgroundColor = [UIColor colorWithRed:0.5 green:0.3 blue:0.8 alpha:1];
-              self.copyBtn.layer.cornerRadius = 6;
-              self.copyBtn.frame = CGRectMake(184, 5, 50, 34);
-              [self.copyBtn addTarget:self action:@selector(onCopy) forControlEvents:UIControlEventTouchUpInside];
-              [btnBg addSubview:self.copyBtn];
+              self.copyResultBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+              [self.copyResultBtn setTitle:@"📋 复制" forState:UIControlStateNormal];
+              [self.copyResultBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+              self.copyResultBtn.backgroundColor = [UIColor colorWithRed:0.5 green:0.3 blue:0.8 alpha:1];
+              self.copyResultBtn.layer.cornerRadius = 6;
+              self.copyResultBtn.frame = CGRectMake(184, 5, 50, 34);
+              [self.copyResultBtn addTarget:self action:@selector(onCopy) forControlEvents:UIControlEventTouchUpInside];
+              [btnBg addSubview:self.copyResultBtn];
 
               y += 52;
 
