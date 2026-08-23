@@ -24,9 +24,21 @@ jobs:
           cat > CloudFlareScan/main.m << 'EOF'
           #import <UIKit/UIKit.h>
 
-          @interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
+          // ===== IP数据模型 =====
+          @interface IPItem : NSObject
+          @property (nonatomic, strong) NSString *ip;
+          @property (nonatomic, assign) NSInteger port;
+          @property (nonatomic, assign) double delay;
+          @property (nonatomic, strong) NSString *country;
+          @property (nonatomic, strong) NSString *colo;
+          @end
+          @implementation IPItem
+          @end
+
+          // ===== 主控制器 =====
+          @interface MainVC : UIViewController <UITableViewDelegate, UITableViewDataSource>
           @property (nonatomic, strong) NSMutableArray *results;
-          @property (nonatomic, strong) UITextView *inputView;
+          @property (nonatomic, strong) UITextView *inputTV;
           @property (nonatomic, strong) UITableView *tableView;
           @property (nonatomic, strong) UILabel *statusLabel;
           @property (nonatomic, strong) UILabel *countLabel;
@@ -37,12 +49,12 @@ jobs:
           @property (nonatomic, assign) BOOL isScanning;
           @end
 
-          @implementation ViewController
+          @implementation MainVC
 
           - (void)viewDidLoad {
               [super viewDidLoad];
               self.view.backgroundColor = [UIColor colorWithRed:0.06 green:0.08 blue:0.15 alpha:1];
-              self.title = @"🚀 优选IP";
+              self.title = @"🚀 优选IP筛选";
               self.results = [NSMutableArray array];
               [self setupUI];
               [self detectISP];
@@ -75,6 +87,7 @@ jobs:
               CGFloat w = self.view.bounds.size.width - 24;
               CGFloat y = 12;
 
+              // 状态
               self.statusLabel = [[UILabel alloc] init];
               self.statusLabel.text = @"就绪";
               self.statusLabel.textColor = [UIColor grayColor];
@@ -102,6 +115,7 @@ jobs:
 
               y += 32;
 
+              // 输入
               UIView *inputBg = [[UIView alloc] init];
               inputBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               inputBg.layer.cornerRadius = 8;
@@ -115,17 +129,18 @@ jobs:
               inputLabel.frame = CGRectMake(12, 6, 200, 20);
               [inputBg addSubview:inputLabel];
 
-              self.inputView = [[UITextView alloc] init];
-              self.inputView.backgroundColor = [UIColor colorWithRed:0.06 green:0.08 blue:0.15 alpha:1];
-              self.inputView.textColor = [UIColor whiteColor];
-              self.inputView.font = [UIFont systemFontOfSize:12];
-              self.inputView.layer.cornerRadius = 4;
-              self.inputView.text = @"1.1.1.1\n8.8.8.8\n9.9.9.9";
-              self.inputView.frame = CGRectMake(8, 30, inputBg.bounds.size.width - 16, 62);
-              [inputBg addSubview:self.inputView];
+              self.inputTV = [[UITextView alloc] init];
+              self.inputTV.backgroundColor = [UIColor colorWithRed:0.06 green:0.08 blue:0.15 alpha:1];
+              self.inputTV.textColor = [UIColor whiteColor];
+              self.inputTV.font = [UIFont systemFontOfSize:12];
+              self.inputTV.layer.cornerRadius = 4;
+              self.inputTV.text = @"1.1.1.1\n8.8.8.8\n9.9.9.9";
+              self.inputTV.frame = CGRectMake(8, 30, inputBg.bounds.size.width - 16, 62);
+              [inputBg addSubview:self.inputTV];
 
               y += 108;
 
+              // 按钮
               UIView *btnBg = [[UIView alloc] init];
               btnBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               btnBg.layer.cornerRadius = 8;
@@ -171,6 +186,7 @@ jobs:
 
               y += 54;
 
+              // 列表
               UIView *tableBg = [[UIView alloc] init];
               tableBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               tableBg.layer.cornerRadius = 8;
@@ -195,6 +211,7 @@ jobs:
 
               y += 208;
 
+              // 输出
               UIView *outBg = [[UIView alloc] init];
               outBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               outBg.layer.cornerRadius = 8;
@@ -243,11 +260,15 @@ jobs:
               [self.results removeAllObjects];
               [self.tableView reloadData];
               self.statusLabel.text = @"已导入";
+              self.countLabel.text = @"总数: 0  可用: 0";
               [self.view endEditing:YES];
+              UITextView *outView = [self.view viewWithTag:200];
+              outView.text = @"等待扫描...";
+              outView.textColor = [UIColor grayColor];
           }
 
           - (void)startScan {
-              NSString *text = self.inputView.text;
+              NSString *text = self.inputTV.text;
               NSArray *lines = [text componentsSeparatedByString:@"\n"];
               NSMutableArray *ips = [NSMutableArray array];
 
@@ -260,14 +281,17 @@ jobs:
                   if (parts.count > 1) port = [parts[1] integerValue];
                   if (port == 0) port = 443;
                   if ([ip containsString:@"."]) {
-                      IPInfo *info = [[IPInfo alloc] init];
+                      IPItem *info = [[IPItem alloc] init];
                       info.ip = ip;
                       info.port = port;
                       [ips addObject:info];
                   }
               }
 
-              if (ips.count == 0) { self.statusLabel.text = @"请导入有效IP"; return; }
+              if (ips.count == 0) {
+                  self.statusLabel.text = @"请导入有效IP";
+                  return;
+              }
 
               [self.results removeAllObjects];
               self.isScanning = YES;
@@ -280,11 +304,11 @@ jobs:
               dispatch_group_t group = dispatch_group_create();
               dispatch_semaphore_t sem = dispatch_semaphore_create(50);
 
-              for (IPInfo *info in ips) {
+              for (IPItem *info in ips) {
                   dispatch_group_enter(group);
                   dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
                   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-                      [self checkIP:info completion:^(IPInfo *result) {
+                      [self testIP:info completion:^(IPItem *result) {
                           [lock lock];
                           if (result) [allResults addObject:result];
                           [lock unlock];
@@ -310,13 +334,14 @@ jobs:
               });
           }
 
-          - (void)checkIP:(IPInfo *)info completion:(void(^)(IPInfo *))completion {
+          - (void)testIP:(IPItem *)info completion:(void(^)(IPItem *))completion {
               NSString *urlStr = [NSString stringWithFormat:@"https://%@:%ld/cdn-cgi/trace", info.ip, (long)info.port];
               NSURL *url = [NSURL URLWithString:urlStr];
               NSDate *start = [NSDate date];
 
               NSURLSessionConfiguration *cfg = [NSURLSessionConfiguration defaultSessionConfiguration];
               cfg.timeoutIntervalForRequest = 3;
+              cfg.timeoutIntervalForResource = 3;
               NSURLSession *session = [NSURLSession sessionWithConfiguration:cfg];
 
               [[session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -333,7 +358,7 @@ jobs:
                               }
                           }
 
-                          IPInfo *result = [[IPInfo alloc] init];
+                          IPItem *result = [[IPItem alloc] init];
                           result.ip = info.ip;
                           result.port = info.port;
                           result.delay = delay;
@@ -363,7 +388,7 @@ jobs:
 
           - (void)updateOutput {
               NSMutableString *outText = [NSMutableString string];
-              for (IPInfo *info in self.results) {
+              for (IPItem *info in self.results) {
                   [outText appendFormat:@"%@:%ld  [%.0fms]  %@  %@\n", info.ip, (long)info.port, info.delay, info.country, info.colo];
               }
               UITextView *outView = [self.view viewWithTag:200];
@@ -373,7 +398,7 @@ jobs:
 
           - (void)copyResults {
               NSMutableString *text = [NSMutableString string];
-              for (IPInfo *info in self.results) {
+              for (IPItem *info in self.results) {
                   [text appendFormat:@"%@:%ld\n", info.ip, (long)info.port];
               }
               if (text.length > 0) {
@@ -392,7 +417,7 @@ jobs:
               cell.textLabel.textColor = [UIColor whiteColor];
               cell.textLabel.font = [UIFont systemFontOfSize:11];
 
-              IPInfo *info = self.results[indexPath.row];
+              IPItem *info = self.results[indexPath.row];
               cell.textLabel.text = [NSString stringWithFormat:@"%@:%ld  [%.0fms]  %@  %@", info.ip, (long)info.port, info.delay, info.country, info.colo];
               return cell;
           }
@@ -403,16 +428,7 @@ jobs:
 
           @end
 
-          @interface IPInfo : NSObject
-          @property (nonatomic, strong) NSString *ip;
-          @property (nonatomic, assign) NSInteger port;
-          @property (nonatomic, assign) double delay;
-          @property (nonatomic, strong) NSString *country;
-          @property (nonatomic, strong) NSString *colo;
-          @end
-          @implementation IPInfo
-          @end
-
+          // ===== App入口 =====
           @interface AppDelegate : UIResponder <UIApplicationDelegate>
           @property (strong, nonatomic) UIWindow *window;
           @end
@@ -421,7 +437,7 @@ jobs:
 
           - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
               self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-              self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[ViewController alloc] init]];
+              self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[MainVC alloc] init]];
               [self.window makeKeyAndVisible];
               return YES;
           }
@@ -477,7 +493,7 @@ jobs:
           </plist>
           EOF
 
-      - name: 直接编译
+      - name: 编译
         run: |
           SDK=$(xcrun --sdk iphoneos --show-sdk-path)
           cd CloudFlareScan
