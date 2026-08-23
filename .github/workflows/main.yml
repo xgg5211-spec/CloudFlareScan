@@ -28,7 +28,6 @@ jobs:
           #import <netinet/in.h>
           #import <arpa/inet.h>
 
-          // ===== 数据模型 =====
           @interface IPInfo : NSObject
           @property (nonatomic, strong) NSString *ip;
           @property (nonatomic, assign) NSInteger port;
@@ -49,7 +48,6 @@ jobs:
           @implementation IPInfo
           @end
 
-          // ===== 地区码映射 =====
           NSDictionary* airportCodes(void) {
               static NSDictionary *dict = nil;
               static dispatch_once_t onceToken;
@@ -68,7 +66,6 @@ jobs:
               return dict;
           }
 
-          // ===== 主控制器 =====
           @interface ViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextViewDelegate>
           @property (nonatomic, strong) NSMutableArray *results;
           @property (nonatomic, strong) NSMutableArray *filteredResults;
@@ -79,7 +76,7 @@ jobs:
           @property (nonatomic, strong) UIButton *scanBtn;
           @property (nonatomic, strong) UIButton *stopBtn;
           @property (nonatomic, strong) UIButton *importBtn;
-          @property (nonatomic, strong) UIButton *copyIPBtn;
+          @property (nonatomic, strong) UIButton *resultCopyBtn;
           @property (nonatomic, strong) UIButton *clearBtn;
           @property (nonatomic, strong) UITextField *portField;
           @property (nonatomic, strong) UITextField *timeoutField;
@@ -99,18 +96,16 @@ jobs:
 
           @implementation ViewController
 
-          // ===== 生命周期 =====
           - (void)viewDidLoad {
               [super viewDidLoad];
               self.view.backgroundColor = [UIColor colorWithRed:0.06 green:0.08 blue:0.15 alpha:1];
-              self.title = @"🌐 优选IP筛选工具";
+              self.title = @"🌐 优选IP筛选";
               self.results = [NSMutableArray array];
               self.filteredResults = [NSMutableArray array];
               [self setupUI];
               [self detectISP];
           }
 
-          // ===== UI布局 =====
           - (void)setupUI {
               UIScrollView *scroll = [[UIScrollView alloc] init];
               scroll.translatesAutoresizingMaskIntoConstraints = NO;
@@ -138,7 +133,6 @@ jobs:
               CGFloat w = self.view.bounds.size.width - 16;
               CGFloat y = 8;
 
-              // 状态栏
               UIView *statusBar = [[UIView alloc] init];
               statusBar.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               statusBar.layer.cornerRadius = 8;
@@ -163,7 +157,6 @@ jobs:
 
               y += 52;
 
-              // 统计卡片
               UIView *statCard = [[UIView alloc] init];
               statCard.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               statCard.layer.cornerRadius = 8;
@@ -171,7 +164,7 @@ jobs:
               [content addSubview:statCard];
 
               self.countLabel = [[UILabel alloc] init];
-              self.countLabel.text = @"📊 总数: 0  可用: 0  最佳: --  平均: --";
+              self.countLabel.text = @"📊 总数:0 可用:0 最佳:-- 平均:--";
               self.countLabel.textColor = [UIColor whiteColor];
               self.countLabel.font = [UIFont systemFontOfSize:13];
               self.countLabel.textAlignment = NSTextAlignmentCenter;
@@ -180,7 +173,6 @@ jobs:
 
               y += 58;
 
-              // 导入IP
               UIView *inputBg = [[UIView alloc] init];
               inputBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               inputBg.layer.cornerRadius = 8;
@@ -188,7 +180,7 @@ jobs:
               [content addSubview:inputBg];
 
               UILabel *inputLabel = [[UILabel alloc] init];
-              inputLabel.text = @"📂 导入IP (每行一个，支持 IP:端口)";
+              inputLabel.text = @"📂 导入IP (每行一个)";
               inputLabel.textColor = [UIColor grayColor];
               inputLabel.font = [UIFont systemFontOfSize:11];
               inputLabel.frame = CGRectMake(12, 8, 300, 20);
@@ -205,7 +197,6 @@ jobs:
 
               y += 118;
 
-              // 设置行
               UIView *settingBg = [[UIView alloc] init];
               settingBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               settingBg.layer.cornerRadius = 8;
@@ -286,7 +277,6 @@ jobs:
 
               y += 88;
 
-              // 按钮行
               UIView *btnBg = [[UIView alloc] init];
               btnBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               btnBg.layer.cornerRadius = 8;
@@ -321,14 +311,14 @@ jobs:
               [self.importBtn addTarget:self action:@selector(importIPs) forControlEvents:UIControlEventTouchUpInside];
               [btnBg addSubview:self.importBtn];
 
-              self.copyIPBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-              [self.copyIPBtn setTitle:@"📋 复制" forState:UIControlStateNormal];
-              [self.copyIPBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-              self.copyIPBtn.backgroundColor = [UIColor colorWithRed:0.5 green:0.3 blue:0.8 alpha:1];
-              self.copyIPBtn.layer.cornerRadius = 6;
-              self.copyIPBtn.frame = CGRectMake(214, 5, 60, 34);
-              [self.copyIPBtn addTarget:self action:@selector(copyResults) forControlEvents:UIControlEventTouchUpInside];
-              [btnBg addSubview:self.copyIPBtn];
+              self.resultCopyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+              [self.resultCopyBtn setTitle:@"📋 复制" forState:UIControlStateNormal];
+              [self.resultCopyBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+              self.resultCopyBtn.backgroundColor = [UIColor colorWithRed:0.5 green:0.3 blue:0.8 alpha:1];
+              self.resultCopyBtn.layer.cornerRadius = 6;
+              self.resultCopyBtn.frame = CGRectMake(214, 5, 60, 34);
+              [self.resultCopyBtn addTarget:self action:@selector(copyResults) forControlEvents:UIControlEventTouchUpInside];
+              [btnBg addSubview:self.resultCopyBtn];
 
               self.clearBtn = [UIButton buttonWithType:UIButtonTypeSystem];
               [self.clearBtn setTitle:@"🗑 清空" forState:UIControlStateNormal];
@@ -341,7 +331,6 @@ jobs:
 
               y += 52;
 
-              // 筛选
               UIView *filterBg = [[UIView alloc] init];
               filterBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               filterBg.layer.cornerRadius = 8;
@@ -396,7 +385,6 @@ jobs:
 
               y += 48;
 
-              // Tab切换
               self.tabControl = [[UISegmentedControl alloc] initWithItems:@[@"📋 结果", @"📝 日志"]];
               self.tabControl.frame = CGRectMake(8, y, w, 32);
               self.tabControl.selectedSegmentIndex = 0;
@@ -406,7 +394,6 @@ jobs:
 
               y += 40;
 
-              // 结果列表
               UIView *tableBg = [[UIView alloc] init];
               tableBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               tableBg.layer.cornerRadius = 8;
@@ -414,7 +401,7 @@ jobs:
               [content addSubview:tableBg];
 
               UILabel *tableLabel = [[UILabel alloc] init];
-              tableLabel.text = @"📋 可用IP (仅显示可连接的)";
+              tableLabel.text = @"📋 可用IP";
               tableLabel.textColor = [UIColor whiteColor];
               tableLabel.font = [UIFont systemFontOfSize:12];
               tableLabel.frame = CGRectMake(12, 6, 250, 20);
@@ -429,7 +416,6 @@ jobs:
               [self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"Cell"];
               [tableBg addSubview:self.tableView];
 
-              // 日志视图
               self.logView = [[UITextView alloc] init];
               self.logView.backgroundColor = [UIColor colorWithRed:0.06 green:0.08 blue:0.15 alpha:1];
               self.logView.textColor = [UIColor colorWithRed:0.8 green:0.9 blue:1.0 alpha:1];
@@ -443,7 +429,6 @@ jobs:
 
               y += 188;
 
-              // 输出
               UIView *outBg = [[UIView alloc] init];
               outBg.backgroundColor = [UIColor colorWithRed:0.10 green:0.13 blue:0.22 alpha:1];
               outBg.layer.cornerRadius = 8;
@@ -474,7 +459,6 @@ jobs:
               scroll.contentSize = content.frame.size;
           }
 
-          // ===== Tab切换 =====
           - (void)tabChanged:(UISegmentedControl *)sender {
               if (sender.selectedSegmentIndex == 0) {
                   self.tableView.superview.hidden = NO;
@@ -485,12 +469,10 @@ jobs:
               }
           }
 
-          // ===== 开关 =====
           - (void)toggleStrictMode:(UISwitch *)sender {
-              [self logMessage:sender.on ? @"🔒 已开启TLS握手严格模式" : @"🔓 已关闭TLS握手严格模式"];
+              [self logMessage:sender.on ? @"🔒 TLS开启" : @"🔓 TLS关闭"];
           }
 
-          // ===== 日志 =====
           - (void)logMessage:(NSString *)msg {
               dispatch_async(dispatch_get_main_queue(), ^{
                   NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
@@ -501,7 +483,6 @@ jobs:
               });
           }
 
-          // ===== 检测运营商 =====
           - (void)detectISP {
               NSURL *url = [NSURL URLWithString:@"http://ip-api.com/json/?fields=isp,country,city"];
               [[[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
@@ -518,14 +499,13 @@ jobs:
               }] resume];
           }
 
-          // ===== 导入IP =====
           - (void)importIPs {
               [self.results removeAllObjects];
               [self.filteredResults removeAllObjects];
               [self.tableView reloadData];
               self.statusLabel.text = @"🟢 已导入";
               self.statusLabel.textColor = [UIColor colorWithRed:0 green:0.9 blue:0.5 alpha:1];
-              self.countLabel.text = @"📊 总数: 0  可用: 0  最佳: --  平均: --";
+              self.countLabel.text = @"📊 总数:0 可用:0 最佳:-- 平均:--";
               [self.view endEditing:YES];
 
               UITextView *outView = [self.view viewWithTag:300];
@@ -541,21 +521,19 @@ jobs:
               [self logMessage:[NSString stringWithFormat:@"📥 已导入 %ld 个IP", (long)count]];
           }
 
-          // ===== 清空 =====
           - (void)clearAll {
               [self.results removeAllObjects];
               [self.filteredResults removeAllObjects];
               [self.tableView reloadData];
               self.inputView.text = @"";
               self.statusLabel.text = @"🟢 已清空";
-              self.countLabel.text = @"📊 总数: 0  可用: 0  最佳: --  平均: --";
+              self.countLabel.text = @"📊 总数:0 可用:0 最佳:-- 平均:--";
               UITextView *outView = [self.view viewWithTag:300];
               outView.text = @"等待扫描...";
               outView.textColor = [UIColor grayColor];
-              [self logMessage:@"🗑 已清空所有数据"];
+              [self logMessage:@"🗑 已清空"];
           }
 
-          // ===== 开始扫描 =====
           - (void)startScan {
               NSString *text = self.inputView.text;
               NSArray *lines = [text componentsSeparatedByString:@"\n"];
@@ -649,7 +627,6 @@ jobs:
               });
           }
 
-          // ===== 测试IP =====
           - (void)testIP:(IPInfo *)info port:(NSInteger)port timeout:(NSInteger)timeout completion:(void(^)(IPInfo *))completion {
               IPInfo *result = [[IPInfo alloc] init];
               result.ip = info.ip;
@@ -709,7 +686,6 @@ jobs:
               completion(result);
           }
 
-          // ===== TCP测试 =====
           - (double)testTCP:(NSString *)ip port:(NSInteger)port timeout:(NSInteger)timeout {
               __block double delay = -1;
               dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -747,7 +723,6 @@ jobs:
               return delay;
           }
 
-          // ===== TLS测试 =====
           - (double)testTLS:(NSString *)ip port:(NSInteger)port timeout:(NSInteger)timeout {
               __block double delay = -1;
               dispatch_semaphore_t sem = dispatch_semaphore_create(0);
@@ -791,7 +766,6 @@ jobs:
               return delay;
           }
 
-          // ===== HTTP测试 =====
           - (NSDictionary *)testHTTP:(NSString *)ip port:(NSInteger)port timeout:(NSInteger)timeout {
               NSString *urlStr = [NSString stringWithFormat:@"https://%@:%ld/cdn-cgi/trace", ip, (long)port];
               NSURL *url = [NSURL URLWithString:urlStr];
@@ -828,12 +802,10 @@ jobs:
               return result;
           }
 
-          // ===== 完整链路测试 =====
           - (NSDictionary *)testFull:(NSString *)ip port:(NSInteger)port timeout:(NSInteger)timeout {
               return [self testHTTP:ip port:port timeout:timeout + 1];
           }
 
-          // ===== 获取位置 =====
           - (NSDictionary *)getLocation:(NSString *)ip {
               NSString *urlStr = [NSString stringWithFormat:@"http://ip-api.com/json/%@?fields=status,country,city,isp,regionName", ip];
               NSURL *url = [NSURL URLWithString:urlStr];
@@ -860,7 +832,6 @@ jobs:
               return result;
           }
 
-          // ===== 停止 =====
           - (void)stopScan {
               self.isScanning = NO;
               self.scanBtn.enabled = YES;
@@ -868,10 +839,9 @@ jobs:
               [self.activityIndicator stopAnimating];
               self.statusLabel.text = @"⏹ 已停止";
               self.statusLabel.textColor = [UIColor yellowColor];
-              [self logMessage:@"⏹ 已停止扫描"];
+              [self logMessage:@"⏹ 已停止"];
           }
 
-          // ===== 筛选 =====
           - (void)filterChanged {
               [self applyFilter];
           }
@@ -908,7 +878,6 @@ jobs:
               }
           }
 
-          // ===== 更新统计 =====
           - (void)updateStats {
               NSInteger total = self.results.count;
               NSInteger available = 0;
@@ -932,11 +901,10 @@ jobs:
               NSString *avgText = delayCount > 0 ? [NSString stringWithFormat:@"%.0f", totalDelay / delayCount] : @"--";
               NSString *bestText = best > 0 ? [NSString stringWithFormat:@"%.0fms", best] : @"--";
 
-              self.countLabel.text = [NSString stringWithFormat:@"📊 总数: %lu  可用: %lu  最佳: %@  平均: %@ms",
+              self.countLabel.text = [NSString stringWithFormat:@"📊 总数:%lu 可用:%lu 最佳:%@ 平均:%@ms",
                                       (unsigned long)total, (unsigned long)available, bestText, avgText];
           }
 
-          // ===== 更新输出 =====
           - (void)updateOutput {
               NSMutableString *outText = [NSMutableString string];
               for (IPInfo *info in self.filteredResults) {
@@ -950,7 +918,6 @@ jobs:
               outView.textColor = outText.length > 0 ? [UIColor whiteColor] : [UIColor grayColor];
           }
 
-          // ===== 复制 =====
           - (void)copyResults {
               NSMutableString *text = [NSMutableString string];
               for (IPInfo *info in self.filteredResults) {
@@ -963,11 +930,10 @@ jobs:
                   [UIPasteboard generalPasteboard].string = text;
                   self.statusLabel.text = @"✅ 已复制";
                   self.statusLabel.textColor = [UIColor colorWithRed:0 green:0.9 blue:0.5 alpha:1];
-                  [self logMessage:@"📋 已复制结果到剪贴板"];
+                  [self logMessage:@"📋 已复制"];
               }
           }
 
-          // ===== TableView =====
           - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
               return self.filteredResults.count;
           }
@@ -995,7 +961,6 @@ jobs:
 
           @end
 
-          // ===== AppDelegate =====
           @interface AppDelegate : UIResponder <UIApplicationDelegate>
           @property (strong, nonatomic) UIWindow *window;
           @end
