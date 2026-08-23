@@ -24,6 +24,9 @@ jobs:
           cat > CloudFlareScan/main.m << 'EOF'
           #import <UIKit/UIKit.h>
           #import <Network/Network.h>
+          #import <sys/socket.h>
+          #import <netinet/in.h>
+          #import <arpa/inet.h>
 
           // ============================================================
           // 1. 数据模型
